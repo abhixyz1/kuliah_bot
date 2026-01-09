@@ -1,4 +1,5 @@
 const config = require("../config/config");
+const videoService = require("../services/videoService");
 
 module.exports = (bot) => {
     bot.onText(/\/video(?: (.+))?/, async (msg, match) => {
@@ -9,32 +10,47 @@ module.exports = (bot) => {
             return bot.sendMessage(chatId, "⚠️ Mohon sertakan topik video.\nContoh: `/video struktur data`", { parse_mode: "Markdown" });
         }
 
-        bot.sendMessage(chatId, config.messages.searchingVideo);
+        bot.sendMessage(chatId, "🔍 *Sedang mencari video...*", { parse_mode: "Markdown" });
 
-        const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query + " tutorial")}`;
-        const youtubeEduSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query + " lecture")}`;
+        try {
+            const videos = await videoService.searchVideos(query);
 
-        const resultMessage = `
-🎥 *Video Pembelajaran: "${query}"*
+            if (videos.length > 0) {
+                const mainVideo = videos[0];
 
-Silakan cari video di platform berikut:
+                // Kirim Video Utama dengan Thumbnail
+                const caption = `🎥 *${mainVideo.title}*\n\n` +
+                    `👤 Channel: ${mainVideo.author}\n` +
+                    `⏱ Durasi: ${mainVideo.timestamp} (${mainVideo.ago})\n` +
+                    `🔗 [Tonton Video](${mainVideo.url})`;
 
-🔴 [YouTube - Tutorial](${youtubeSearchUrl})
-🔴 [YouTube - Lecture](${youtubeEduSearchUrl})
+                await bot.sendPhoto(chatId, mainVideo.thumbnail, {
+                    caption: caption,
+                    parse_mode: "Markdown"
+                });
 
-*Channel Rekomendasi:*
-• Programmer Zaman Now (Indonesia)
-• Web Programming UNPAS (Indonesia)
-• freeCodeCamp
-• Traversy Media
-• The Net Ninja
+                // Kirim Rekomendasi Lainnya jika ada
+                if (videos.length > 1) {
+                    let recommendationMsg = "*Rekomendasi Lainnya:*\n";
+                    videos.slice(1).forEach((v, i) => {
+                        recommendationMsg += `\n${i + 1}. [${v.title}](${v.url}) - ${v.timestamp}`;
+                    });
 
-💡 *Tips:* Tambahkan kata kunci "tutorial" atau "explained" untuk hasil lebih baik!
-`;
+                    await bot.sendMessage(chatId, recommendationMsg, {
+                        parse_mode: "Markdown",
+                        disable_web_page_preview: true
+                    });
+                }
 
-        bot.sendMessage(chatId, resultMessage, {
-            parse_mode: "Markdown",
-            disable_web_page_preview: false,
-        });
+            } else {
+                bot.sendMessage(chatId, "⚠️ Maaf, tidak ditemukan video untuk topik tersebut.");
+            }
+
+        } catch (error) {
+            console.error("Error searching video:", error);
+            // Fallback ke pesan manual jika error
+            const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+            bot.sendMessage(chatId, `⚠️ Terjadi kesalahan. Cari manual di:\n[YouTube](${youtubeSearchUrl})`, { parse_mode: "Markdown" });
+        }
     });
 };
