@@ -1,12 +1,14 @@
 require("dotenv").config();
 
 module.exports = {
-    telegramToken: process.env.TELEGRAM_BOT_TOKEN,
-    coreApiBaseUrl: "https://core.ac.uk/api-v2/search/",
-    wikipediaApiUrl: "https://en.wikipedia.org/w/api.php",
-    timeout: 10000,
-    messages: {
-        welcome: `
+   telegramToken: process.env.TELEGRAM_BOT_TOKEN,
+   coreApiBaseUrl: "https://core.ac.uk/api-v2/search/",
+   wikipediaApiUrl: "https://en.wikipedia.org/w/api.php",
+   timeout: 10000,
+   googleApiKey: process.env.GOOGLE_API_KEY,
+   googleCseId: process.env.GOOGLE_CSE_ID,
+   messages: {
+      welcome: `
 🎓 *Selamat datang di Kuliah Bot!*
 
 Bot ini membantu Anda mencari:
@@ -20,7 +22,7 @@ Bot ini membantu Anda mencari:
 /video <topik> - Cari video pembelajaran
 /help - Bantuan lengkap
 `,
-        help: `
+      help: `
 📖 *Panduan Penggunaan Bot*
 
 *Perintah yang tersedia:*
@@ -44,11 +46,11 @@ Bot ini membantu Anda mencari:
 
 Butuh bantuan? Hubungi developer!
 `,
-        searchingJournal: "🔍 Mencari jurnal ilmiah...",
-        searchingMaterial: "🔍 Mencari materi kuliah...",
-        searchingVideo: "🔍 Mencari video pembelajaran...",
-        errorGeneric: "⚠️ Terjadi kesalahan. Silakan coba lagi nanti.",
-        notFoundJournal: (query) => `❌ Tidak ditemukan jurnal dengan kata kunci "${query}". Coba kata kunci lain!`,
-        notFoundMaterial: (query) => `❌ Tidak ditemukan materi dengan topik "${query}". Coba kata kunci lain!`,
-    },
+      searchingJournal: "🔍 Mencari jurnal ilmiah...",
+      searchingMaterial: "🔍 Mencari materi kuliah...",
+      searchingVideo: "🔍 Mencari video pembelajaran...",
+      errorGeneric: "⚠️ Terjadi kesalahan. Silakan coba lagi nanti.",
+      notFoundJournal: (query) => `❌ Tidak ditemukan jurnal dengan kata kunci "${query}". Coba kata kunci lain!`,
+      notFoundMaterial: (query) => `❌ Tidak ditemukan materi dengan topik "${query}". Coba kata kunci lain!`,
+   },
 };

@@ -3,37 +3,31 @@ const config = require("../config/config");
 
 const searchMaterials = async (query) => {
     try {
-        const response = await axios.get(config.wikipediaApiUrl, {
+        if (!config.googleApiKey || !config.googleCseId) {
+            throw new Error("API Key atau CSE ID belum dikonfigurasi.");
+        }
+
+        const response = await axios.get("https://www.googleapis.com/customsearch/v1", {
             params: {
-                action: "opensearch",
-                search: query,
-                limit: 5,
-                format: "json",
+                key: config.googleApiKey,
+                cx: config.googleCseId,
+                q: `${query} filetype:pdf OR filetype:ppt`, // Force PDF or PPT
+                num: 5 // Limit 5 results
             },
             timeout: config.timeout,
-            headers: {
-                // Wikipedia requires a User-Agent
-                'User-Agent': 'KuliahBot/1.0 (mailto:student@example.com)'
-            }
         });
 
-        if (response.data && response.data[1] && response.data[1].length > 0) {
-            const titles = response.data[1];
-            const descriptions = response.data[2];
-            const links = response.data[3];
-
-            const results = [];
-            for (let i = 0; i < titles.length; i++) {
-                results.push({
-                    title: titles[i],
-                    description: descriptions[i],
-                    link: links[i]
-                });
-            }
-            return results;
+        if (response.data.items && response.data.items.length > 0) {
+            return response.data.items.map(item => ({
+                title: item.title,
+                description: item.snippet,
+                link: item.link,
+                fileFormat: item.fileFormat // "PDF/Adobe Acrobat" usually
+            }));
         }
         return [];
     } catch (error) {
+        console.error("Error searching materials:", error.message);
         throw new Error(error.message);
     }
 };
